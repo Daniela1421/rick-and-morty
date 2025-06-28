@@ -1,27 +1,33 @@
-import { useEffect, useState } from 'react';
-import { Character } from '@/types/character';
-import { getCharacters } from '@/services/characterService';
+import { useEffect, useState } from "react";
+import { getCharacters } from "@/services/characterService";
+import { Character } from "@/types/character";
 
-export const useCharacters = () => {
+export function useCharacters(name: string, status: string, gender: string) {
   const [characters, setCharacters] = useState<Character[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCharacters = async () => {
+      setLoading(true);
+      setError("");
       try {
-        const data = await getCharacters();
+        const data = await getCharacters(name, status, gender);
         setCharacters(data);
-      } catch (e) {
-        console.log(e)
-        setError('Error al cargar personajes.');
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          setCharacters([]);
+        } else {
+         setError("No pudimos cargar los personajes. Intenta nuevamente más tarde.");
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    fetchCharacters();
+  }, [name, status, gender]);
 
   return { characters, loading, error };
-};
+}
+
